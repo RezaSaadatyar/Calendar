@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar for daily tasks</title>
+
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 5px;
+    text-align: left;
+    border: 1px solid #ddd;
+    position: relative;
+    cursor: pointer;
+    vertical-align: top;
+  }
+  th {
+    background-color: #faf5f5;
+  }
+  .month-nav {
+    cursor: pointer;
+    font-size: 24px;
+    padding: 0 10px;
+  }
+  .today, .day-number {
+    display: block;
+    margin: 0;
+    font-size: 16px;
+  }
+  .today {
+    background-color: #ffcccb;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    line-height: 25px;
+    text-align: center;
+  }
+  .task-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  .task-list li {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    margin-top: 2px;
+  }
+  .task-checkbox {
+    margin-right: 5px;
+  }
+  .task-time {
+    margin-left: 10px;
+    font-size: 10px;
+    color: #888;
+  }
+  .task-input {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 10px;
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+    z-index: 100;
+  }
+  .task-input input[type="text"] {
+    width: 150px;
+    margin-bottom: 5px;
+  }
+</style>
+</head>
+<body>
+
+<div style="display: flex; justify-content: center; align-items: center;">
+  <span class="month-nav" onclick="changeMonth(-1)">&#10094;</span>
+  <h2 id="calendar-month-year" style="margin: 0 15px;"></h2>
+  <span class="month-nav" onclick="changeMonth(1)">&#10095;</span>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Sun</th>
+      <th>Mon</th>
+      <th>Tue</th>
+      <th>Wed</th>
+      <th>Thu</th>
+      <th>Fri</th>
+      <th>Sat</th>
+    </tr>
+  </thead>
+  <tbody id="calendar-days"></tbody>
+</table>
+
+<div id="task-popup" class="task-input">
+  <input type="text" id="task-input" placeholder="Add task">
+  <button onclick="addTask()">Add</button>
+  <button onclick="closeTaskPopup()">Cancel</button>
+</div>
+
+<script>
+  let currentDate = new Date();
+  let today = new Date();
+  let currentCell = null;
+
+  function createCalendar(date) {
+    const monthNames = ["January", "February", "March", "April", "May", "June", 
+                        "July", "August", "September", "October", "November", "December"];
+    document.getElementById("calendar-month-year").innerText = monthNames[date.getMonth()] + " " + date.getFullYear();
+
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+
+    let tableHTML = "", day = 1;
+    for (let i = 0; i < 6; i++) {
+      let row = "", daysAdded = 0;
+      for (let j = 0; j < 7; j++) {
+        if (i === 0 && j < firstDay) {
+          row += "<td></td>";
+        } else if (day > daysInMonth) {
+          row += "<td></td>";
+        } else {
+          let isToday = day === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+          let dayHTML = isToday ? `<span class="today">${day}</span>` : `<span class="day-number">${day}</span>`;
+          row += `<td oncontextmenu="return showTaskPopup(event, true)">${dayHTML}<ul class='task-list'></ul></td>`;
+          day++;
+          daysAdded++;
+        }
+      }
+      if (daysAdded > 0) {
+        tableHTML += `<tr>${row}</tr>`;
+      }
+    }
+    document.getElementById("calendar-days").innerHTML = tableHTML;
+  }
+
+  function changeMonth(step) {
+    currentDate.setMonth(currentDate.getMonth() + step);
+    createCalendar(currentDate);
+  }
+
+  function showTaskPopup(event, isRightClick = false) {
+    if (!isRightClick) return true;
+    event.preventDefault();
+    const taskPopup = document.getElementById('task-popup');
+    taskPopup.style.display = 'block';
+    taskPopup.style.top = `${event.clientY}px`;
+    taskPopup.style.left = `${event.clientX}px`;
+    currentCell = event.target.closest('td');
+    return false;
+  }
+
+  function closeTaskPopup() {
+    document.getElementById('task-popup').style.display = 'none';
+  }
+
+  function addTask() {
+    const taskInput = document.getElementById('task-input').value;
+    if (taskInput && currentCell) {
+      const taskList = currentCell.querySelector('.task-list');
+      const newTask = document.createElement('li');
+      const checkBox = document.createElement('input');
+      checkBox.type = 'checkbox';
+      checkBox.className = 'task-checkbox';
+      checkBox.onchange = addTimestamp;
+      newTask.appendChild(checkBox);
+      newTask.appendChild(document.createTextNode(taskInput));
+      taskList.appendChild(newTask);
+    }
+    document.getElementById('task-input').value = '';
+    closeTaskPopup();
+  }
+
+  function addTimestamp(event) {
+    const checkbox = event.target;
+    const parent = checkbox.parentNode;
+    if (checkbox.checked) {
+      const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const timeLabel = document.createElement('span');
+      timeLabel.className = 'task-time';
+      timeLabel.textContent = currentTime;
+      parent.appendChild(timeLabel);
+    } else {
+      const timeLabel = parent.querySelector('.task-time');
+      if (timeLabel) parent.removeChild(timeLabel);
+    }
+  }
+
+  createCalendar(currentDate);
+</script>
+</body>
+</html>
