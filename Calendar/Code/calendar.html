@@ -3,48 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dynamic Calendar with Highlighted Current Day</title>
+<title>Calendar for daily tasks</title>
+
+<!---------------------------- CSS Styles ------------------------------>
 <style>
   table {
-    width: 100%;
-    border-collapse: collapse;
+    width: 100%; /* Full width of the container */
+    border-collapse: collapse; /* No space between table borders */
   }
   th, td {
-    padding: 20px;
-    text-align: center;
-    border: 1px solid #ddd;
-    position: relative; /* Allows absolute positioning within the cell */
+    padding: 20px; /* Padding inside cells */
+    text-align:right; /* Center text horizontally */
+    border: 1px solid #ddd; /* Light grey border */
+    position: relative; /* Needed for positioning child elements */
   }
   th {
-    background-color: #faf5f5;
+    background-color: #faf5f5; /* Light pink background for headers */
   }
   .month-nav {
-    cursor: pointer;
-    font-size: 24px;
-    padding: 0 10px;
+    cursor: pointer; /* Indicates clickable element */
+    font-size: 24px; /* Larger font for visibility */
+    padding: 0 10px; /* Padding around the arrows */
   }
   .today {
-    background-color: #ffcccb; /* Light red background */
-    border-radius: 50%;
-    width: 25px; /* Adjust size here */
-    height: 25px; /* Adjust size here */
-    display: inline-block;
-    line-height: 25px; /* Aligns text vertically */
-    margin: 0 auto; /* Center the circle horizontally in the cell */
+    background-color: #ffcccb; /* Light red background for the current day */
+    border-radius: 50%; /* Circular shape */
+    width: 25px; /* Width of the circle */
+    height: 25px; /* Height of the circle */
+    display:inline; /* Needed for width and height */
+    line-height: 30px; /* Centers text vertically */
+    margin: 0 auto; /* Centers the circle horizontally */
   }
 </style>
 </head>
 <body>
 
+<!----------------------- Navigation and Title ------------------------>
 <div style="display: flex; justify-content: center; align-items: center;">
-  <span class="month-nav" onclick="changeMonth(-1)">&#10094;</span>
-  <h2 id="calendar-month-year" style="margin: 0 15px;"></h2>
-  <span class="month-nav" onclick="changeMonth(1)">&#10095;</span>
+  <span class="month-nav" onclick="changeMonth(-1)">&#10094;</span> <!-- Left arrow for previous month -->
+  <h2 id="calendar-month-year" style="margin: 0 15px;"></h2> <!-- Display month and year -->
+  <span class="month-nav" onclick="changeMonth(1)">&#10095;</span> <!-- Right arrow for next month -->
 </div>
+
+<!------------------------- Calendar Table ----------------------------->
 <table>
   <thead>
     <tr>
-      <th>Sun</th>
+      <th>Sun</th> <!-- Day columns -->
       <th>Mon</th>
       <th>Tue</th>
       <th>Wed</th>
@@ -54,14 +59,17 @@
     </tr>
   </thead>
   <tbody id="calendar-days">
+    <!-- Dynamic rows will be inserted here -->
   </tbody>
 </table>
 
+<!-------------------- JavaScript for Calendar Logic ------------------->
 <script>
-  let currentDate = new Date();
-  let today = new Date(); // today's date
+  let currentDate = new Date(); // Stores the current date
+  let today = new Date(); // Copy of the current date for comparisons
 
   function createCalendar(date) {
+    // Month names array for easy lookup
     const monthNames = ["January", "February", "March", "April", "May", "June", 
                         "July", "August", "September", "October", "November", "December"];
     document.getElementById("calendar-month-year").innerText = monthNames[date.getMonth()] + " " + date.getFullYear();
@@ -70,34 +78,34 @@
     const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 
     let tableHTML = "", day = 1;
-    for (let i = 0; i < 6; i++) { // week rows
+    for (let i = 0; i < 6; i++) { // Create up to 6 rows for weeks
       let row = "", daysAdded = 0;
-      for (let j = 0; j < 7; j++) { // weekdays
+      for (let j = 0; j < 7; j++) { // Create 7 columns for days
         if (i === 0 && j < firstDay) {
-          row += "<td></td>";
+          row += "<td></td>"; // Fill initial empty cells
         } else if (day > daysInMonth) {
-          row += "<td></td>";
+          row += "<td></td>"; // Fill trailing empty cells
         } else {
           let isToday = day === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
-          let cellHTML = isToday ? `<span class="today">${day}</span>` : day;
+          let cellHTML = isToday ? `<span class="today">${day}</span>` : day; // Highlight today
           row += `<td>${cellHTML}</td>`;
           day++;
           daysAdded++;
         }
       }
-      if (daysAdded > 0) { // Only add rows that have at least one day
+      if (daysAdded > 0) { // Only append rows with at least one day
         tableHTML += `<tr>${row}</tr>`;
       }
     }
-    document.getElementById("calendar-days").innerHTML = tableHTML;
+    document.getElementById("calendar-days").innerHTML = tableHTML; // Update the calendar
   }
 
   function changeMonth(step) {
-    currentDate.setMonth(currentDate.getMonth() + step);
-    createCalendar(currentDate);
+    currentDate.setMonth(currentDate.getMonth() + step); // Adjust current date by month
+    createCalendar(currentDate); // Recreate the calendar
   }
 
-  createCalendar(currentDate);
+  createCalendar(currentDate); // Initialize calendar
 </script>
 
 </body>
