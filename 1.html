@@ -58,6 +58,11 @@
     font-size: 10px;
     color: #888;
   }
+  .delete-task {
+    margin-left: auto;
+    cursor: pointer;
+    color: red;
+  }
   .task-input {
     display: none;
     position: absolute;
@@ -170,8 +175,14 @@
       checkBox.type = 'checkbox';
       checkBox.className = 'task-checkbox';
       checkBox.onchange = addTimestamp;
+      const deleteButton = document.createElement('span');
+      deleteButton.textContent = '✖';
+      deleteButton.className = 'delete-task';
+      deleteButton.onclick = function() { removeTask(newTask); };
+
       newTask.appendChild(checkBox);
       newTask.appendChild(document.createTextNode(taskInput));
+      newTask.appendChild(deleteButton);
       taskList.appendChild(newTask);
     }
     document.getElementById('task-input').value = '';
@@ -193,7 +204,12 @@
     }
   }
 
+  function removeTask(taskElement) {
+    taskElement.parentNode.removeChild(taskElement);
+  }
+
   createCalendar(currentDate);
 </script>
+
 </body>
 </html>
